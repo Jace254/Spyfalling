@@ -34,10 +34,6 @@ function App () {
   const [timer, setTimer] = useState(gameDuration)
   const [WRole, setWRole] = useState(null)
 
-  // const [onMessageCallback, setOnMessageCallback] = useState();
-  // const [disconnect,setDisconnect] = useState();
-  // const [onDisconnect,setOnDisconnect] = useState();
-
 
   const [account, setAccount] = useState({})
 
@@ -47,83 +43,105 @@ function App () {
     return bal;
   }
 
-    const reachFuncs = {
-      connect: async (playerType) => {
-        let result = ""
-        let account;
-        try {
-          account = await reach.getDefaultAccount();
-          result = 'success'
-        } catch (error) {
-          result = 'failed';
-        }
-        return {result,account};
-      },
+  async function call(f) {
+    let res = undefined;
+    try {
+      res = await f();
+      console.log(`res`, res);
+      return res;
+    } catch (e) {
+      res = [`err`, e]
+      console.log(`res`, res);
+      return false;
+    }
+  }
 
-      deploy: async (numPlayers,amt,rounds) => {
-        const parameters = {
-          numPlayers: numPlayers,
-          amt: reach.parseCurrency(amt),
-          rounds: rounds
-        }
-        const contract = account.contract(backend);
-        await reach.withDisconnect(() => Promise.all([
-          backend.Admin(contract, {
-            setParams: parameters,
-            ready: () => {
-              console.log(`Admin disconnected as Participant`);
-              reach.disconnect(null);
-            }
-          })
-        ]))
-        const ctcInfo = JSON.stringify(await contract.getInfo())
-        console.log(JSON.parse(ctcInfo))
-        return {contract,ctcInfo};
-      },
-
-      attachPlayer: (contractInfo) => { 
-        const contract = account.contract(backend, JSON.parse(contractInfo));
-        return contract;
+  const reachFuncs = {
+    connect: async (playerType) => {
+      let result = ""
+      let account;
+      try {
+        account = await reach.getDefaultAccount();
+        result = 'success'
+      } catch (error) {
+        result = 'failed';
       }
+      return {result,account};
+    },
+
+    deploy: async (numPlayers,amt,rounds) => {
+      const parameters = {
+        numPlayers: numPlayers,
+        amt: reach.parseCurrency(amt),
+        rounds: rounds
+      }
+      const contract = account.contract(backend);
+      await reach.withDisconnect(() => Promise.all([
+        backend.Admin(contract, {
+          setParams: parameters,
+          ready: () => {
+            console.log(`Admin disconnected as Participant`);
+            reach.disconnect(null);
+          }
+        })
+      ]))
+      const ctcInfo = JSON.stringify(await contract.getInfo())
+      console.log(JSON.parse(ctcInfo))
+      return {contract,ctcInfo};
+    },
+
+    attachPlayer: (contractInfo) => { 
+      const contract = account.contract(backend, JSON.parse(contractInfo));
+      return contract;
+    },
+
+    joinPlayer: (playerCtc) => {
+
+    },
+    joinPlayer: (playerCtc) => {
+
+    },
+    joinPlayer: (playerCtc) => {
+
+    },
+    joinPlayer: (playerCtc) => {
+
     }
+  }
 
-    function disconnect () {
-      resetAll()
-      connectionManager.disconnect()
-    }
+  function disconnect () {
+    resetAll()
+    connectionManager.disconnect()
+  }
 
-    const onDisconnect = () => {
-      resetAll()
-      setError('Connection to server closed')
-    }
+  const onDisconnect = () => {
+    resetAll()
+    setError('Connection to server closed')
+  }
 
-    async function onMessageCallback (type, data) {
-      if (type === 'chat-event') {
-        appendText(data.message, data.author, data.color)
-      } else if (type === 'session-broadcast') {
-        setLobbyStatus(data)
-      } else if (type === 'start-game') {
-        startGame(data)
-      } else if (type === 'session-created') {
-        setGameMode(true)
-        console.log(data)
-        if( data.playerType === 'Admin') {
-          const deployment = await reachFuncs.deploy(data.sessionNumP,data.sessionWager,data.sessionRounds);
-          connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
-          connectionManager.send("set-player-ctc", { playerContract: deployment.contract})
-        } else if (data.playerType === 'Player'){
-          const playerContract = await reachFuncs.attachPlayer(data.sessionCtc)
-          connectionManager.send("set-player-ctc", { playerContract: playerContract})
-        }
-        setError('')
-        // TODO replace window.location.hash with ?code=
-        window.location.hash = data.sessionId
-      } 
-    }
-    // setOnMessageCallback(() => onMessageCallback)
-
-
-  
+  async function onMessageCallback (type, data) {
+    if (type === 'chat-event') {
+      appendText(data.message, data.author, data.color)
+    } else if (type === 'session-broadcast') {
+      setLobbyStatus(data)
+    } else if (type === 'start-game') {
+      startGame(data)
+    } else if (type === 'session-created') {
+      setGameMode(true)
+      console.log(data)
+      if( data.playerType === 'Admin') {
+        const deployment = await reachFuncs.deploy(data.sessionNumP,data.sessionWager,data.sessionRounds);
+        connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
+        connectionManager.send("set-player-ctc", { playerContract: deployment.contract})
+      } else if (data.playerType === 'Player'){
+        const playerContract = await reachFuncs.attachPlayer(data.sessionCtc)
+        connectionManager.send("set-player-ctc", { playerContract: playerContract})
+      }
+      setError('')
+      // TODO replace window.location.hash with ?code=
+      window.location.hash = data.sessionId
+    } 
+  }
 
   function resetClickableElements () {
     document
