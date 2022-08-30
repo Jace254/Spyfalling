@@ -11,7 +11,7 @@ export default class ConnectionManager {
       if (window.location.hostname === 'localhost') {
         this.socket = io('http://localhost:8081',{transports: ['websocket'], upgrade: false})
       } else {
-        this.socket = io('https://server-spyfalling.heroku.com',{transports: ['websocket'], upgrade: false})
+        this.socket = io('wss://server-spyfalling.heroku.com',{transports: ['websocket'], upgrade: false})
       }
     } else {
       this.socket.connect()
