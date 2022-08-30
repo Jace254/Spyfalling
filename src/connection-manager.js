@@ -11,7 +11,7 @@ export default class ConnectionManager {
       if (window.location.hostname === 'localhost') {
         this.socket = io('http://localhost:8081',{transports: ['websocket'], upgrade: false})
       } else {
-        this.socket = io('https://spyfall-server.onrender.com',{transports: ['websocket'], upgrade: false})
+        this.socket = io('https://server-spyfalling.herokuapp.com',{transports: ['websocket'], upgrade: false})
       }
     } else {
       this.socket.connect()
