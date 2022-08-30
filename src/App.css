@@ -1,0 +1,7 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #a47328;
+  background-image: linear-gradient(to bottom right, #4d5f14 20%, #8e5825 100%);
+  background-size: cover;
+  background-repeat: none;
+}

@@ -1,0 +1,11 @@
+.chat-box {
+  min-height: 14em;
+}
+
+.border-rounded-bottom-left {
+  border-radius: 0 0 0 4px;
+}
+
+.border-rounded-bottom-right {
+  border-radius: 0 0 4px 0;
+}
