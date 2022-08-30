@@ -78,27 +78,24 @@ function App () {
         ]))
         const ctcInfo = JSON.stringify(await contract.getInfo())
         console.log(JSON.parse(ctcInfo))
-        return ctcInfo;
+        return {contract,ctcInfo};
       },
 
-      // attach: (contractInfo) => { 
-      //   const contract = account.contract(backend, JSON.parse(contractInfo));
-      //   backend.Bob(contract, Player)
-      //   // setView(views.ATTACHING)
-      // }
+      attachPlayer: (contractInfo) => { 
+        const contract = account.contract(backend, JSON.parse(contractInfo));
+        return contract;
+      }
     }
 
     function disconnect () {
       resetAll()
       connectionManager.disconnect()
     }
-    // setDisconnect(() => disconnect);
 
     const onDisconnect = () => {
       resetAll()
       setError('Connection to server closed')
     }
-    // setOnDisconnect(() => onDisconnect);
 
     async function onMessageCallback (type, data) {
       if (type === 'chat-event') {
@@ -111,8 +108,12 @@ function App () {
         setGameMode(true)
         console.log(data)
         if( data.playerType === 'Admin') {
-          const ctcInfo = await reachFuncs.deploy(data.sessionNumP,data.sessionWager,data.sessionRounds);
-          connectionManager.send("set-ctc", { ctc: ctcInfo })
+          const deployment = await reachFuncs.deploy(data.sessionNumP,data.sessionWager,data.sessionRounds);
+          connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
+          connectionManager.send("set-player-ctc", { playerContract: deployment.contract})
+        } else if (data.playerType === 'Player'){
+          const playerContract = await reachFuncs.attachPlayer(data.sessionCtc)
+          connectionManager.send("set-player-ctc", { playerContract: playerContract})
         }
         setError('')
         // TODO replace window.location.hash with ?code=

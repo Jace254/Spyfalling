@@ -20,10 +20,10 @@ export default function ConnectWallet (props) {
     <Card className='text-dark bg-light border-primary'>
         <div className='d-grid'>
             <div textalign='center' >
-                Connect Your ALGO Wallet
+                Connect Your ALGO Wallet(MyAlgo)
             </div>
             <button onClick={handleClick} className='btn btn-primary'>
-                Connect Wallet
+                {disabled ? (<>Connecting...</>) : (<>Connect Wallet</>)}
             </button>
         </div>
     </Card>

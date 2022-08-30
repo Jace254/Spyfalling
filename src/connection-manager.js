@@ -9,9 +9,9 @@ export default class ConnectionManager {
   initSocket () {
     if (!this.socket) {
       if (window.location.hostname === 'localhost') {
-        this.socket = io('http://localhost:8081')
+        this.socket = io('http://localhost:8081',{transports: ['websocket'], upgrade: false})
       } else {
-        this.socket = io('https://spyfall-server.onrender.com')
+        this.socket = io('https://spyfall-server.onrender.com',{transports: ['websocket'], upgrade: false})
       }
     } else {
       this.socket.connect()
