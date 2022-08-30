@@ -2,6 +2,9 @@
   "name": "spyfall-client",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "16.15.0"
+  },
   "dependencies": {
     "@reach-sh/stdlib": "^0.1.11-rc.8",
     "@testing-library/jest-dom": "^5.11.9",
