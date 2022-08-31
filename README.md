@@ -2,7 +2,7 @@
 
 A game made as part of Umoja 3 bounty hack
 
-[![Vercel Status](https://therealsujitk-vercel-badge.vercel.app/?app=spyfall-reach})]
+![Vercel Status](https://therealsujitk-vercel-badge.vercel.app/?app=spyfall-reach})
 
 A multiplayer social deduction game inspired by [Spyfall](https://hwint.ru/portfolio-item/spyfall/). 
 
