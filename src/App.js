@@ -1,4 +1,3 @@
-import './App.css'
 import React, { useState } from 'react'
 import {loadStdlib} from '@reach-sh/stdlib'
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from '@reach-sh/stdlib'
@@ -9,8 +8,6 @@ import GameSettings from './GameSettings/GameSettings'
 import Menu from './Menu/Menu'
 import Error from './components/Error'
 import ConnectionManager from './connection-manager.js'
-
-
 
 const reach = loadStdlib('ALGO');
 reach.setWalletFallback(reach.walletFallback({ providerEnv: 'TestNet', MyAlgoConnect }))
