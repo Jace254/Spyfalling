@@ -169,7 +169,7 @@ function App () {
         connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
         connectionManager.send("set-player-ctc", { playerContract: deployment.contract})
         //Game attaches
-        const gameContract = await reachFuncs.attachGame('harvest immune derive hobby pyramid behave you wedding tragic mouse demand harvest climb vicious world bullet gloom bacon border aspect burden immense relief able area',deployment.ctcInfo)
+        const gameContract = await reachFuncs.attachGame(process.env.GAME_ACCOUNT || 'harvest immune derive hobby pyramid behave you wedding tragic mouse demand harvest climb vicious world bullet gloom bacon border aspect burden immense relief able area',deployment.ctcInfo)
         console.log(gameContract)
         connectionManager.send("set-game-ctc", {gameContract: gameContract})
         //send reach events to server
@@ -187,9 +187,32 @@ function App () {
         reachFuncs.join(playerContract);
       }
       setError('')
-      // TODO replace window.location.hash with ?code=
-      // window.location.hash = data.sessionId
-    } 
+      
+    } else if ( type === 'reach-callback') {
+      //TO DO player function handling
+      const ev = data.events.next()
+      const phase = ev.what[0][0]
+      // eslint-disable-next-line default-case
+      switch(phase) {
+        case 'Joining':
+          reachFuncs.join(data.playerContract);
+          break;
+
+        case 'Wagering':
+          reachFuncs.wager(data.playerContract); 
+          break;
+          
+        case 'CheckingWin':
+          reachFuncs.checkWin(data.playerContract)
+          break;
+
+        case 'PayingWinners':
+          break;
+
+        case 'Finished':
+          break;
+      }
+    }
   }
 
   function resetClickableElements () {
