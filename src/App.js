@@ -3,14 +3,11 @@ import React, { useState } from 'react'
 import {loadStdlib} from '@reach-sh/stdlib'
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from '@reach-sh/stdlib'
 import * as backend from './reach/build/index.main.mjs'
-import Connect from './views/Connect'
-import ConnectWallet from './views/ConnectWallet'
-import Chat from './Chat/Chat'
+import {Connect,ConnectWallet} from './views'
 import Rules from './components/Rules'
 import GameSettings from './GameSettings/GameSettings'
 import Menu from './Menu/Menu'
-import Error from './Error'
-import Locations from './components/Locations'
+import Error from './components/Error'
 import ConnectionManager from './connection-manager.js'
 
 
@@ -36,6 +33,12 @@ function App () {
 
 
   const [account, setAccount] = useState({})
+  //views
+  const [createdGame, setCreatedGame] = useState(false);
+  const [optedIn, setOptedIn] = useState(false);
+  const [paramsSet,setParamsSet] = useState(false);
+  const [finishedUp,setFinisedUp] = useState(false);
+  const [acceptedWager,setAcceptedWager] = useState(false);
 
   async function showBalance(account){
     const balAtomic = await reach.balanceOf(account);
@@ -43,10 +46,10 @@ function App () {
     return bal;
   }
 
-  async function call(f) {
+  async function call(f,dom = null) {
     let res = undefined;
     try {
-      res = await f();
+      res = await f(dom);
       console.log(`res`, res);
       return res;
     } catch (e) {
@@ -76,6 +79,7 @@ function App () {
         rounds: rounds
       }
       const contract = account.contract(backend);
+      setCreatedGame(true);
       await reach.withDisconnect(() => Promise.all([
         backend.Admin(contract, {
           setParams: parameters,
@@ -85,6 +89,8 @@ function App () {
           }
         })
       ]))
+      setOptedIn(true);
+      setParamsSet(true);
       const ctcInfo = await contract.getInfo()
       console.log(ctcInfo)
       return {contract,ctcInfo};
@@ -93,10 +99,7 @@ function App () {
     attachGame: async (secret, contractInfo) => {
       const account = await reach.newAccountFromMnemonic(secret)
       const contract = account.contract(backend, contractInfo);
-      backend.Game(contract, {
-        showWinningRole: () => {
-        }
-      })
+      return contract;
     },
 
     attachPlayer: (contractInfo) => { 
@@ -109,15 +112,15 @@ function App () {
     },
 
     wager: (playerCtc) => {
-      call(playerCtc.apis.Player.wager());
+      call(playerCtc.apis.Player.wager);
     },
 
     getNum: (playerCtc,num) => {
-      call(playerCtc.apis.Player.getNum(num));
+      call(playerCtc.apis.Player.getNum,num);
     },
 
     checkWin: (playerCtc) => {
-      const isWinner = call(playerCtc.apis.Player.checkWin());
+      const isWinner = call(playerCtc.apis.Player.checkWin);
       return isWinner;
     }
   }
@@ -143,12 +146,19 @@ function App () {
       setGameMode(true)
       console.log(data)
       if( data.playerType === 'Admin') {
+        //Admin deploys game
         const deployment = await reachFuncs.deploy(data.sessionNumP,data.sessionWager,data.sessionRounds);
+        setFinisedUp(true)
         connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
         connectionManager.send("set-player-ctc", { playerContract: deployment.contract})
-        const ev = await deployment.contract.events.GamePhase.phase()
+        //Game attaches
+        const gameContract = await reachFuncs.attachGame()
+        connectionManager.send("set-game-ctc", {gameContract: gameContract})
+        //send reach events to server
+        const ev = await deployment.contract.events.GamePhase.phase
         console.log(ev)
         connectionManager.send("set-reach-events",{events: ev});
+        //admin joins as player in contract
         reachFuncs.join(deployment.contract);
       } else if (data.playerType === 'Player'){
         const playerContract = reachFuncs.attachPlayer(data.sessionCtc)
@@ -234,21 +244,23 @@ function App () {
               {gameMode
               ? (
                 <>
-                  <Chat
+                  <GameSettings
                     connectionManager={connectionManager}
                     chatContent={chatContent}
                     isActive={isTimerActive}
                     timer={timer}
                     setTimer={setTimer}
+                    locations={locations}
                     gameDuration={gameDuration}
-                  />
-                  <Locations locations={locations} />
-                  <GameSettings
-                    connectionManager={connectionManager}
                     disconnectCallback={disconnect}
                     readyCheck={readyCheck}
                     setReadyCheck={setReadyCheck}
                     lobbyStatus={lobbyStatus}
+                    createdGame={createdGame}
+                    optedIn={optedIn}
+                    paramsSet={paramsSet}
+                    finishedUp={finishedUp}
+                    acceptedWager={acceptedWager}
                   />
                 </>
                 )

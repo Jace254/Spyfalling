@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Card from '../components/Card';
+import './views.css'
 
 export default function ConnectWallet (props) {
   const [disabled, setDisabled] = useState(false)
@@ -22,7 +23,7 @@ export default function ConnectWallet (props) {
   return (
     <Card className='text-dark bg-light border-primary'>
         <div className='d-grid'>
-            <div textalign='center' >
+            <div className='info' >
                 Connect Your ALGO Wallet(MyAlgo)
             </div>
             <button onClick={handleClick} className='btn btn-primary'>
