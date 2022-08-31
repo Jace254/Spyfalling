@@ -79,7 +79,7 @@ function App () {
         amt: reach.parseCurrency(amt),
         rounds: rounds
       }
-      setParamsG(parameters);
+      setParamsG({numPlayers: numPlayers,amt: amt,rounds: rounds});
       const contract = account.contract(backend);
       setCreatedGame(true);
       await reach.withDisconnect(() => Promise.all([
@@ -99,7 +99,23 @@ function App () {
     },
 
     attachGame: async (secret, contractInfo) => {
-      const account = await reach.newAccountFromMnemonic(secret)
+      const account = await reach.newAccountFromMnemonic(secret.trim())
+      console.log(await showBalance(account))
+      const canFund = await reach.canFundFromFaucet()
+      if(canFund) {
+        console.log(`Can Fund`);
+        const faucet = await reach.getFaucet()
+        const balanceOfFaucet = await showBalance(faucet)
+        const fmtBal = reach.formatCurrency(balanceOfFaucet, 4)
+        console.log(`Faucet balance ${fmtBal}`)
+
+        console.log(`Funding`)
+        await reach.fundFromFaucet(reach.parseCurrency(fmtBal - 0.5))
+        console.log(`Funded`)
+      } else {
+        console.log(`Cannot fund`);
+      }
+      console.log(await showBalance(account))
       const contract = account.contract(backend, contractInfo);
       return contract;
     },
@@ -150,18 +166,20 @@ function App () {
       if( data.playerType === 'Admin') {
         //Admin deploys game
         const deployment = await reachFuncs.deploy(data.sessionNumP,data.sessionWager,data.sessionRounds);
-        setFinisedUp(true)
         connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
         connectionManager.send("set-player-ctc", { playerContract: deployment.contract})
         //Game attaches
-        const gameContract = await reachFuncs.attachGame()
+        const gameContract = await reachFuncs.attachGame('harvest immune derive hobby pyramid behave you wedding tragic mouse demand harvest climb vicious world bullet gloom bacon border aspect burden immense relief able area',deployment.ctcInfo)
+        console.log(gameContract)
         connectionManager.send("set-game-ctc", {gameContract: gameContract})
         //send reach events to server
         const ev = await deployment.contract.events.GamePhase.phase
-        console.log(ev)
+        console.log(ev);
         connectionManager.send("set-reach-events",{events: ev});
         //admin joins as player in contract
         reachFuncs.join(deployment.contract);
+        console.log(`Admin joined as Player 1`);
+        setFinisedUp(true);
       } else if (data.playerType === 'Player'){
         const playerContract = reachFuncs.attachPlayer(data.sessionCtc)
         console.log(playerContract)
