@@ -125,6 +125,7 @@ function App () {
       return contract;
     },
 
+    // API funtions
     join: (playerCtc) => {
       call(playerCtc.apis.Player.join);
     },
@@ -176,18 +177,18 @@ function App () {
         const ev = await deployment.contract.events.GamePhase.phase
         console.log(ev);
         connectionManager.send("set-reach-events",{events: ev});
-        //admin joins as player in contract
-        reachFuncs.join(deployment.contract);
-        console.log(`Admin joined as Player 1`);
+        // //admin joins as player in contract
+        // reachFuncs.join(deployment.contract);
+        // console.log(`Admin joined as Player 1`);
         setFinisedUp(true);
       } else if (data.playerType === 'Player'){
         const playerContract = reachFuncs.attachPlayer(data.sessionCtc)
         console.log(playerContract)
         connectionManager.send("set-player-ctc", { playerContract: playerContract})
-        reachFuncs.join(playerContract);
+        // reachFuncs.join(playerContract);
       }
       setError('')
-      
+
     } else if ( type === 'reach-callback') {
       //TO DO player function handling
       const ev = data.events.next()
