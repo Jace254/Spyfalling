@@ -2,7 +2,7 @@
 
 A game made as part of Umoja 3 bounty hack
 
-![Vercel Status](https://img.shields.io/github/deployments/Jace254/Spyfalling/production)
+![GitHub deployments](https://img.shields.io/github/deployments/Jace254/Spyfalling/production?label=vercel)
 
 A multiplayer social deduction game inspired by [Spyfall](https://hwint.ru/portfolio-item/spyfall/). 
 
