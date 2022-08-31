@@ -30,6 +30,7 @@ function App () {
   const [isTimerActive, setIsTimerActive] = useState(false)
   const [timer, setTimer] = useState(gameDuration)
   const [Winner, setWinner] = useState(null)
+  const [paramsG, setParamsG] = useState();
 
 
   const [account, setAccount] = useState({})
@@ -78,6 +79,7 @@ function App () {
         amt: reach.parseCurrency(amt),
         rounds: rounds
       }
+      setParamsG(parameters);
       const contract = account.contract(backend);
       setCreatedGame(true);
       await reach.withDisconnect(() => Promise.all([
@@ -168,7 +170,7 @@ function App () {
       }
       setError('')
       // TODO replace window.location.hash with ?code=
-      window.location.hash = data.sessionId
+      // window.location.hash = data.sessionId
     } 
   }
 
@@ -257,6 +259,7 @@ function App () {
                     setReadyCheck={setReadyCheck}
                     lobbyStatus={lobbyStatus}
                     createdGame={createdGame}
+                    paramsG={paramsG}
                     optedIn={optedIn}
                     paramsSet={paramsSet}
                     finishedUp={finishedUp}

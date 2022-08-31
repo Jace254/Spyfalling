@@ -43,7 +43,7 @@ export default function GameSettings (props) {
           </>)
           : (<><FinishingUp/></>)}</>)
         : (<><SettingParams/></>)}</>) 
-      : (<><OptIn/></>) }</>)
+      : (<><OptIn params={props.paramsG}/></>) }</>)
     : (<><CreateGame/></>)
     }
       
