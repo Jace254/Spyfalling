@@ -11,7 +11,7 @@ export default function OptIn (props) {
                 Opting into Game...
                 <p>
                   Set Parameters:
-                   {JSON.stringify(props.params)}
+                   <p style={{font: '4px'}}>{JSON.stringify(props.params)}</p>
                 </p>
                 <p style={{font: '10px', color: 'blue'}} >please sign your wallet on notification</p>
             </div>
