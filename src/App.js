@@ -3,14 +3,14 @@ import React, { useState } from 'react'
 import {loadStdlib} from '@reach-sh/stdlib'
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from '@reach-sh/stdlib'
 import * as backend from './reach/build/index.main.mjs'
-import Connect from './Connect'
-import ConnectWallet from './ConnectWallet'
+import Connect from './views/Connect'
+import ConnectWallet from './views/ConnectWallet'
 import Chat from './Chat/Chat'
-import Rules from './Rules'
+import Rules from './components/Rules'
 import GameSettings from './GameSettings/GameSettings'
 import Menu from './Menu/Menu'
 import Error from './Error'
-import Locations from './Locations'
+import Locations from './components/Locations'
 import ConnectionManager from './connection-manager.js'
 
 
@@ -32,7 +32,7 @@ function App () {
   const [locations, setLocations] = useState([])
   const [isTimerActive, setIsTimerActive] = useState(false)
   const [timer, setTimer] = useState(gameDuration)
-  const [WRole, setWRole] = useState(null)
+  const [Winner, setWinner] = useState(null)
 
 
   const [account, setAccount] = useState({})
@@ -85,27 +85,40 @@ function App () {
           }
         })
       ]))
-      const ctcInfo = JSON.stringify(await contract.getInfo())
-      console.log(JSON.parse(ctcInfo))
+      const ctcInfo = await contract.getInfo()
+      console.log(ctcInfo)
       return {contract,ctcInfo};
     },
 
+    attachGame: async (secret, contractInfo) => {
+      const account = await reach.newAccountFromMnemonic(secret)
+      const contract = account.contract(backend, contractInfo);
+      backend.Game(contract, {
+        showWinningRole: () => {
+        }
+      })
+    },
+
     attachPlayer: (contractInfo) => { 
-      const contract = account.contract(backend, JSON.parse(contractInfo));
+      const contract = account.contract(backend, contractInfo);
       return contract;
     },
 
-    joinPlayer: (playerCtc) => {
-
+    join: (playerCtc) => {
+      call(playerCtc.apis.Player.join);
     },
-    joinPlayer: (playerCtc) => {
 
+    wager: (playerCtc) => {
+      call(playerCtc.apis.Player.wager());
     },
-    joinPlayer: (playerCtc) => {
 
+    getNum: (playerCtc,num) => {
+      call(playerCtc.apis.Player.getNum(num));
     },
-    joinPlayer: (playerCtc) => {
 
+    checkWin: (playerCtc) => {
+      const isWinner = call(playerCtc.apis.Player.checkWin());
+      return isWinner;
     }
   }
 
@@ -133,9 +146,15 @@ function App () {
         const deployment = await reachFuncs.deploy(data.sessionNumP,data.sessionWager,data.sessionRounds);
         connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
         connectionManager.send("set-player-ctc", { playerContract: deployment.contract})
+        const ev = await deployment.contract.events.GamePhase.phase()
+        console.log(ev)
+        connectionManager.send("set-reach-events",{events: ev});
+        reachFuncs.join(deployment.contract);
       } else if (data.playerType === 'Player'){
-        const playerContract = await reachFuncs.attachPlayer(data.sessionCtc)
+        const playerContract = reachFuncs.attachPlayer(data.sessionCtc)
+        console.log(playerContract)
         connectionManager.send("set-player-ctc", { playerContract: playerContract})
+        reachFuncs.join(playerContract);
       }
       setError('')
       // TODO replace window.location.hash with ?code=

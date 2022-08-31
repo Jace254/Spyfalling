@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Card from './Card';
+import Card from '../components/Card';
 
 export default function ConnectWallet (props) {
   const [disabled, setDisabled] = useState(false)
@@ -11,9 +11,12 @@ export default function ConnectWallet (props) {
     const connection = await props.connect();
     console.log(connection.result);
     console.log(connection.account);
-    props.setWalletMode(true)
-    props.setAccount(connection.account);
-
+    if(connection.result === 'success') {
+      props.setWalletMode(true)
+      props.setAccount(connection.account);
+    } else {
+      setDisabled(false);
+    }
   }
 
   return (

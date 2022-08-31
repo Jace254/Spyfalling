@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Card from './Card';
+import Card from '../components/Card';
 
 export default function Connect (props) {
   const [disabled, setDisabled] = useState(false)
@@ -8,6 +8,7 @@ export default function Connect (props) {
   const [numPlayers, setNumPlayers] = useState('')
   const [wager, setWager] = useState('')
   const [buttonText, setButtonText] = useState('🏠 Create Lobby')
+  const [switchText, setSwitchText ] = useState('Join Instead')
   const [rounds, setRounds] = useState('')
 
   const handleSubmit = async (e) => {
@@ -38,8 +39,10 @@ export default function Connect (props) {
   const handleSwitch = (event) => {
     if (buttonText === '🔌 Join Lobby') {
       setButtonText('🏠 Create Lobby')
+      setSwitchText('Join Instead')
     } else  if (buttonText === '🏠 Create Lobby'){
       setButtonText('🔌 Join Lobby')
+      setSwitchText('Create Instead')
     } 
   }
 
@@ -58,7 +61,7 @@ export default function Connect (props) {
     <Card className='text-dark bg-light border-primary'>
       <div className='d-grid'>
           <button type=' submit' className='btn btn-primary' onClick={handleSwitch}>
-            Switch
+            {switchText}
           </button>
         </div>
       <form onSubmit={handleSubmit}>

@@ -18,7 +18,7 @@ export default function PlayersList ({ lobbyStatus }) {
                   : e.target.classList.add('strike')
               }}
             >
-              {client.name} {client.ready ? ' ✅' : ''}
+              {client.id} {client.name} {client.ready ? ' ✅' : ''}
             </li>
           )
         })}
