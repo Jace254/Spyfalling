@@ -2,11 +2,12 @@
 
 A game made as part of Umoja 3 bounty hack
 
-[![Vercel Status](https://api.github.com/repos/Jace254/Spyfalling/deployments/3/statuses)
+[![Vercel Status](https://api.github.com/repos/Jace254/Spyfalling/deployments/3/statuses)]
 
-A multiplayer social deduction game inspired by [Spyfall](https://hwint.ru/portfolio-item/spyfall/). Built with React and [socket.io](https://socket.io).
+A multiplayer social deduction game inspired by [Spyfall](https://hwint.ru/portfolio-item/spyfall/). 
 
-View the server code [here](https://github.com/VeryBadFrags/spyfall-server).
+Built with React and [socket.io](https://socket.io).
 
-[▶️ Play the game](https://spy.verybadfrags.com)
+View the server code [here](https://github.com/Jace254/spyfall-server).
+
 [▶️ Play the game](https://spyfall-reach.vercel.app)
