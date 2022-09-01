@@ -25,13 +25,13 @@ export default function GameSettings (props) {
               setTimer={props.setTimer}
               gameDuration={props.gameDuration}
             />
-            <Locations locations={props.locations} />
+            <Locations locations={props.locations} isSpy={props.isSpy} connectionManager={props.connectionManager}/>
             <Card
               className='border-secondary'
               header='<i class="fas fa-cog"></i> Settings'
             >
               <LobbyCode lobbyStatus={props.lobbyStatus} />
-              <PlayersList lobbyStatus={props.lobbyStatus} />
+              <PlayersList lobbyStatus={props.lobbyStatus} isSpy={props.isSpy} connectionManager={props.connectionManager}/>
               <NewGameForm
                 readyCheck={props.readyCheck}
                 setReadyCheck={props.setReadyCheck}

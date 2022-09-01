@@ -28,6 +28,7 @@ function App () {
   const [timer, setTimer] = useState(gameDuration)
   const [Winner, setWinner] = useState(null)
   const [paramsG, setParamsG] = useState();
+  const [isSpy, setIsSpy] = useState();
 
 
   const [account, setAccount] = useState({})
@@ -158,6 +159,11 @@ function App () {
       setLobbyStatus(data)
     } else if (type === 'start-game') {
       startGame(data)
+    } else if (type === 'vote-result') {
+      console.log(data);
+      if (data.winLose) {
+        //todo: add reach function to submit win; reach will award the first person to vote
+      }
     } else if (type === 'session-created') {
       setGameMode(true)
       console.log(data)
@@ -247,14 +253,16 @@ function App () {
     setIsTimerActive(true)
     appendText('Game started')
     if (data.spy) {
+      setIsSpy(true)
       appendText(
-        '🕵️ You are the spy, try to guess the current location',
+        '🕵️ You are the spy, try to guess the current location before the timer ends',
         null,
         'red'
       )
     } else {
+      setIsSpy(false)
       appendText(
-        `😇 You are not the spy, the location is ${data.location}`,
+        `😇 You are not the spy, the location is ${data.location}. Vote for who you think the spy is.`,
         null,
         'blue'
       )
@@ -303,6 +311,7 @@ function App () {
                     paramsSet={paramsSet}
                     finishedUp={finishedUp}
                     acceptedWager={acceptedWager}
+                    isSpy={isSpy}
                   />
                 </>
                 )
