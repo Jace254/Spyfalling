@@ -10,8 +10,6 @@ export default function ConnectWallet (props) {
     }
     setDisabled(true);
     const connection = await props.connect();
-    console.log(connection.result);
-    console.log(connection.account);
     if(connection.result === 'success') {
       props.setWalletMode(true)
       props.setAccount(connection.account);

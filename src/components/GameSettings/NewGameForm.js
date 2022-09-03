@@ -3,7 +3,7 @@ import React, { useRef } from 'react'
 export default function NewGameForm ({
   readyCheck,
   setReadyCheck,
-  connectionManager
+  connectionManager,
 }) {
   const readyRef = useRef()
 
@@ -49,7 +49,7 @@ export default function NewGameForm ({
         <div className='d-grid'>
           <button type='submit' className='btn btn-primary'>
             <i className='fas fa-traffic-light' /> Start new round
-          </button>
+          </button> 
         </div>
       </form>
     </div>
