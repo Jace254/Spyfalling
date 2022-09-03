@@ -3,27 +3,29 @@ import {loadStdlib} from '@reach-sh/stdlib'
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from '@reach-sh/stdlib'
 import * as backend from './reach/build/index.main.mjs'
 import {Connect,ConnectWallet} from './views'
-import Rules from './components/Rules'
-import GameSettings from './GameSettings/GameSettings'
-import Menu from './Menu/Menu'
-import Error from './components/Error'
+import {Menu,Error,Rules,GameSettings} from './components'
 import ConnectionManager from './connection-manager.js'
 
 const reach = loadStdlib('ALGO');
-reach.setWalletFallback(reach.walletFallback({      providerEnv: {
+reach.setWalletFallback(reach.walletFallback({providerEnv: {
   ALGO_TOKEN: '',
   ALGO_SERVER: "https://testnet-api.algonode.cloud",
   ALGO_PORT: '',
   ALGO_NODE_WRITE_ONLY: 'no',
-  
+
   ALGO_INDEXER_TOKEN: '',
   ALGO_INDEXER_SERVER: "https://testnet-idx.algonode.cloud",
   ALGO_INDEXER_PORT: '443',
 }, MyAlgoConnect }))
 
 const gameDuration = 600;
+let contractP;
+let gameCtc;
+// let ev;
 
-const connectionManager = new ConnectionManager(reach)
+const connectionManager = new ConnectionManager();
+
+const GAME_ACCOUNT = process.env.GAME_ACCOUNT || process.env.REACT_APP_GAME_ACCOUNT;
 
 function App () {
   const [walletMode, setWalletMode] = useState(false);
@@ -60,16 +62,19 @@ function App () {
     return bal;
   }
 
-  async function call(f,dom = null) {
+  async function call(f,dom) {
     let res = undefined;
     try {
-      res = await f(dom);
-      console.log(`res`, res);
-      return res;
+      if (dom){
+        res = await f(dom);
+      } else {
+        res = await f();
+      }
+      return 'success';
     } catch (e) {
       res = [`err`, e]
       console.log(`res`, res);
-      return false;
+      return 'failed';
     }
   }
 
@@ -99,7 +104,6 @@ function App () {
         backend.Admin(contract, {
           setParams: parameters,
           ready: () => {
-            console.log(`Admin disconnected as Participant`);
             reach.disconnect(null);
           }
         }),
@@ -127,14 +131,15 @@ function App () {
     },
 
     // API funtions
-    join: async (playerContract) => {
-      const res = await call(playerContract.join);
-      return res;
+    join: async () => {
+      const res = await call(contractP.apis.Player.join);
+      // const ev = await contractP.events.GamePhase.phase.next();
+      return {res};
     },
 
-    wager: async (playerContract) => {
-      const res = await call(playerContract.wager);
-      return res;
+    wager: async () => {
+      const res = await call(contractP.apis.Player.wager);
+      return {res};
     }
   }
 
@@ -149,7 +154,7 @@ function App () {
   }
 
   let phase;
-  async function onMessageCallback (type, data) {
+  async function onMessageCallback (type, data,callback) {
     if (type === 'chat-event') {
       appendText(data.message, data.author, data.color)
     } else if (type === 'session-broadcast') {
@@ -165,49 +170,78 @@ function App () {
       setGameMode(true)
       if( data.playerType === 'Admin') {
         //Admin deploys game and Game attaches
-        const deployment = await reachFuncs.deploy(process.env.GAME_ACCOUNT || 'harvest immune derive hobby pyramid behave you wedding tragic mouse demand harvest climb vicious world bullet gloom bacon border aspect burden immense relief able area',data.sessionNumP,data.sessionWager,data.sessionRounds);
+        const deployment = await reachFuncs.deploy(GAME_ACCOUNT,data.sessionNumP,data.sessionWager,data.sessionRounds);
         connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
-        connectionManager.send("set-player-ctc", { playerContract: deployment.contract.apis.Player})
-        connectionManager.send("set-game-ctc", {gameContract: deployment.gameContract})
-        console.log(name);
+        contractP = deployment.contract;
+        gameCtc = deployment.gameContract;
         //send reach events to server
         const ev = await deployment.contract.events.GamePhase.phase.next();
         connectionManager.send("set-reach-events",{events: ev});
         setFinisedUp(true);
-      } else if (data.playerType === 'Player'){
-        const playerContract = reachFuncs.attachPlayer(data.sessionCtc)
-        connectionManager.send("set-player-ctc", { playerContract: playerContract});
+      } else if (data.playerType === 'Player') {
+        contractP = reachFuncs.attachPlayer(data.sessionCtc);
       }
-      setError('');
+      if(data.sessionId === null) {
+        setGameMode(false);
+        setError('No such Lobby')
+      } else {
+        setError('')
+      }
 
+      
     } else if ( type === 'reach-callback') {
       //TO DO player function handling
-      phase = data.events.what[0][0]
+      phase = data.phases.what[0][0]
+      console.log(phase);
       // eslint-disable-next-line default-case
       switch(phase) {
         case 'Joining':
-          console.log(data.cliName.substring(3))
+          connectionManager.send("chat-event", {
+            message: `${data.cliName} is joining the game contract as player ${data.cliIdx}`,
+            color: "blue",
+          });
           if(data.cliName.substring(3) === name) {
-            const res = await reachFuncs.join(data.playerContract);
-            connectionManager.send("reach-success", {response: res});
-          } else {
-            console.log(`${data.cliName} is joining the game contract`);
-            connectionManager.send("reach-success", {response: 'failed'});
+            const joinData = await reachFuncs.join();
+            console.log(joinData.res);
+            let id;
+            let ev;
+            let response;
+            if(data.cliIdx === data.participants){
+              id = 1
+              const what = [["Wagering",null]]
+              console.log(what[0][0])
+              ev = {what}
+              response = {response: joinData.res,done: false,id: id ,events: ev }
+            } else {
+              id = data.cliIdx + 1
+              response = {response: joinData.res,done: false,id: id}
+            }
+            connectionManager.send("reach-success",response);
           }
           break;
 
         case 'Wagering':
-          console.log(name);
-          console.log(data.cliName)
-          if(data.cliName === name) {
-            const res = await reachFuncs.wager(data.playerContract);
-            connectionManager.send("reach-success", {response: res});
-          } else {
-            console.log(`${data.cliName} is paying the wager`);
-          }
+          connectionManager.send("chat-event", {
+            message: `${data.cliName} is paying the wager`,
+            color: "blue",
+          });
+          if(data.cliName.substring(3) === name) {
+            const wagerData = await reachFuncs.wager();
+            let response;
+            let id;
+            if(data.cliIdx === data.participants) {
+              id = 1
+              response = {response: wagerData.res,done: true,id: id}
+            } else {
+              id = data.cliIdx + 1
+              response = {response: wagerData.res,done: false,id: id}
+            }
+            connectionManager.send("reach-success",response);
+          } 
           break;
 
         case 'Finished':
+          console.log('Finished');
           break;
       }
     }
@@ -297,12 +331,15 @@ function App () {
                     readyCheck={readyCheck}
                     setReadyCheck={setReadyCheck}
                     lobbyStatus={lobbyStatus}
+                    setGameMode={setGameMode}
+                    setError={setError}
                     createdGame={createdGame}
                     paramsG={paramsG}
                     optedIn={optedIn}
                     paramsSet={paramsSet}
                     finishedUp={finishedUp}
                     acceptedWager={acceptedWager}
+                    setPType={setPType}
                     pType= {pType}
                   />
                 </>

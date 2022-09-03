@@ -1,9 +1,4 @@
-/* eslint-disable no-empty-pattern */
-/* eslint-disable no-use-before-define */
-/* eslint-disable eqeqeq */
-/* eslint-disable no-loop-func */
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-undef */
+/* eslint-disable */
 'reach 0.1';
 
 const playerFuncs = Struct([["join", UInt],["wager", UInt]]);
@@ -56,6 +51,8 @@ export const main = Reach.App(() => {
   invariant(balance() == 0) 
   while(remainingRounds > 0) {
     // Maps and sets of in game concepts
+    const playersM = new Set();
+    
     const awaitAdminPlayerAPI = (apiFunc) => {
       
       if  (apiFunc == 1) {
@@ -87,8 +84,8 @@ export const main = Reach.App(() => {
     const [playersJoined] =
     parallelReduce([ 0 ])
     .invariant(balance() == 0)
-    .invariant(playersJoined <= numPlayers)
-    .while(playersJoined < numPlayers )
+    .invariant(playersJoined <= numPlayers-1)
+    .while(playersJoined < numPlayers-1)
     .api_(Player.join, () => {
       check(!playersM.member(this));
       return [ (k) => {
@@ -134,4 +131,5 @@ export const main = Reach.App(() => {
   commit()
   exit();
 });
+
 

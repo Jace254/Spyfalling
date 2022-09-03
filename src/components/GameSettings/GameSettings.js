@@ -1,15 +1,15 @@
 import React from 'react'
-import Card from '../components/Card'
+import Card from '../Card'
 import LobbyCode from './LobbyCode'
 import NewGameForm from './NewGameForm'
 import PlayersList from './PlayersList'
 import Chat from '../Chat/Chat'
-import Locations from '../components/Locations'
-import { CreateGame, FinishingUp, OptIn, SettingParams } from '../views'
+import Locations from '../Locations'
+import { CreateGame, FinishingUp, OptIn, SettingParams } from '../../views'
 
 
 export default function GameSettings (props) {
-
+ 
   return (
     <>{props.pType === 'Admin'
       ? (<>{props.createdGame 
@@ -30,8 +30,8 @@ export default function GameSettings (props) {
                   className='border-secondary'
                   header='<i class="fas fa-cog"></i> Settings'
                 >
-                  <LobbyCode lobbyStatus={props.lobbyStatus} />
-                  <PlayersList lobbyStatus={props.lobbyStatus} />
+                  <LobbyCode lobbyStatus={props.lobbyStatus}/>
+                  <PlayersList lobbyStatus={props.lobbyStatus}/>
                   <NewGameForm
                     readyCheck={props.readyCheck}
                     setReadyCheck={props.setReadyCheck}
@@ -65,6 +65,7 @@ export default function GameSettings (props) {
           readyCheck={props.readyCheck}
           setReadyCheck={props.setReadyCheck}
           connectionManager={props.connectionManager}
+          pType={props.pType}
         />
         <hr />
         <DisconnectButton disconnectCallback={props.disconnectCallback} />
