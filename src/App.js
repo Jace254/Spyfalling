@@ -25,7 +25,7 @@ let gameCtc;
 
 const connectionManager = new ConnectionManager();
 
-const GAME_ACCOUNT = process.env.GAME_ACCOUNT || process.env.REACT_APP_GAME_ACCOUNT;
+const GAME_ACCOUNT = process.env.GAME_ACCOUNT;
 
 function App () {
   const [walletMode, setWalletMode] = useState(false);
