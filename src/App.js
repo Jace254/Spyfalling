@@ -37,10 +37,10 @@ function App () {
   const [locations, setLocations] = useState([])
   const [isTimerActive, setIsTimerActive] = useState(false)
   const [timer, setTimer] = useState(gameDuration);
-  const [winner,setWinner] = useState()
+  const [winner,setWinner] = useState();
   const [name, setName] = useState('');
+  const [wager,setWager] = useState();
   const [pType, setPType] = useState('Admin');
-  const [paramsG, setParamsG] = useState();
 
 
   const [account, setAccount] = useState({})
@@ -97,7 +97,6 @@ function App () {
         amt: reach.parseCurrency(amt),
         rounds: rounds
       }
-      setParamsG({numPlayers: numPlayers,amt: amt,rounds: rounds});
       const contract = account.contract(backend);
       setCreatedGame(true);
       await reach.withDisconnect(() => Promise.all([
@@ -168,6 +167,7 @@ function App () {
       }
     } else if (type === 'session-created') {
       setGameMode(true)
+      setWager(data.sessionWager)
       if( data.playerType === 'Admin') {
         //Admin deploys game and Game attaches
         const deployment = await reachFuncs.deploy(GAME_ACCOUNT,data.sessionNumP,data.sessionWager,data.sessionRounds);
@@ -334,13 +334,13 @@ function App () {
                     setGameMode={setGameMode}
                     setError={setError}
                     createdGame={createdGame}
-                    paramsG={paramsG}
                     optedIn={optedIn}
                     paramsSet={paramsSet}
                     finishedUp={finishedUp}
                     acceptedWager={acceptedWager}
                     setPType={setPType}
                     pType= {pType}
+                    wager={wager}
                   />
                 </>
                 )
