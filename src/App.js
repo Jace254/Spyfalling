@@ -36,11 +36,13 @@ function App () {
   const [lobbyStatus, setLobbyStatus] = useState()
   const [locations, setLocations] = useState([])
   const [isTimerActive, setIsTimerActive] = useState(false)
+  const [isSpy, setIsSpy] = useState();
   const [timer, setTimer] = useState(gameDuration);
   const [winner,setWinner] = useState();
   const [name, setName] = useState('');
   const [wager,setWager] = useState();
   const [pType, setPType] = useState('Admin');
+
 
 
   const [account, setAccount] = useState({})
@@ -281,14 +283,16 @@ function App () {
     setIsTimerActive(true)
     appendText('Game started')
     if (data.spy) {
+      setIsSpy(true)
       appendText(
-        '🕵️ You are the spy, try to guess the current location',
+        '🕵️ You are the spy, try to guess the current location before the timer ends',
         null,
         'red'
       )
     } else {
+      setIsSpy(false)
       appendText(
-        `😇 You are not the spy, the location is ${data.location}`,
+        `😇 You are not the spy, the location is ${data.location}. Vote for who you think the spy is.`,
         null,
         'blue'
       )
@@ -338,6 +342,7 @@ function App () {
                     paramsSet={paramsSet}
                     finishedUp={finishedUp}
                     acceptedWager={acceptedWager}
+                    isSpy={isSpy}
                     setAcceptedWager={setAcceptedWager}
                     setPType={setPType}
                     pType= {pType}

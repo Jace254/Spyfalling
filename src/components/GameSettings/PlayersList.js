@@ -1,6 +1,15 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-export default function PlayersList ({ lobbyStatus }) {
+export default function PlayersList ({ lobbyStatus, isSpy, connectionManager }) {
+  const [vote, setVote] = useState();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    connectionManager.send('vote-event', {
+      spy: isSpy,
+      vote: vote,
+    })
+  }
   return (
     <div>
       <h6 className='card-title'>
@@ -23,6 +32,28 @@ export default function PlayersList ({ lobbyStatus }) {
           )
         })}
       </ul>
+      {/**if player is not spy, they can see this view and choose who the spy is */}
+      {!isSpy &&
+        <form onSubmit={handleSubmit}>
+          <select 
+            className='mb-3 form-control'
+            value={vote} 
+            name="choice"
+            onChange={(e) => setVote(e.target.value)}
+          >
+            {lobbyStatus?.peers.clients.map((client, i) => {
+              return (
+                <option value={i}>{client.name}</option>
+              )
+            })}
+          </select>
+          <div className='d-grid'>
+            <button type=' submit' className='btn btn-primary'>
+              Submit Vote
+            </button>
+          </div>
+        </form>
+      }
     </div>
   )
 }
