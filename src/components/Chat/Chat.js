@@ -1,6 +1,6 @@
 import './Chat.css'
 import React, { useEffect, useRef, useState } from 'react'
-import Card from '../components/Card'
+import Card from '../Card'
 import ProgressBar from './ProgressBar'
 
 export default function Chat ({

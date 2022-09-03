@@ -3,18 +3,29 @@ import {loadStdlib} from '@reach-sh/stdlib'
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from '@reach-sh/stdlib'
 import * as backend from './reach/build/index.main.mjs'
 import {Connect,ConnectWallet} from './views'
-import Rules from './components/Rules'
-import GameSettings from './GameSettings/GameSettings'
-import Menu from './Menu/Menu'
-import Error from './components/Error'
+import {Menu,Error,Rules,GameSettings} from './components'
 import ConnectionManager from './connection-manager.js'
 
 const reach = loadStdlib('ALGO');
-reach.setWalletFallback(reach.walletFallback({ providerEnv: 'TestNet', MyAlgoConnect }))
+reach.setWalletFallback(reach.walletFallback({providerEnv: {
+  ALGO_TOKEN: '',
+  ALGO_SERVER: "https://testnet-api.algonode.cloud",
+  ALGO_PORT: '',
+  ALGO_NODE_WRITE_ONLY: 'no',
 
-const gameDuration = 300;
+  ALGO_INDEXER_TOKEN: '',
+  ALGO_INDEXER_SERVER: "https://testnet-idx.algonode.cloud",
+  ALGO_INDEXER_PORT: '443',
+}, MyAlgoConnect }))
 
-const connectionManager = new ConnectionManager(reach)
+const gameDuration = 600;
+let contractP;
+let gameCtc;
+// let ev;
+
+const connectionManager = new ConnectionManager();
+
+const GAME_ACCOUNT = process.env.GAME_ACCOUNT;
 
 function App () {
   const [walletMode, setWalletMode] = useState(false);
@@ -25,41 +36,52 @@ function App () {
   const [lobbyStatus, setLobbyStatus] = useState()
   const [locations, setLocations] = useState([])
   const [isTimerActive, setIsTimerActive] = useState(false)
-  const [timer, setTimer] = useState(gameDuration)
-  const [Winner, setWinner] = useState(null)
-  const [paramsG, setParamsG] = useState();
   const [isSpy, setIsSpy] = useState();
+  const [timer, setTimer] = useState(gameDuration);
+  const [winner,setWinner] = useState();
+  const [name, setName] = useState('');
+  const [wager,setWager] = useState();
+  const [pType, setPType] = useState('Admin');
+
 
 
   const [account, setAccount] = useState({})
-  //views
+
+  //views for Admins
   const [createdGame, setCreatedGame] = useState(false);
   const [optedIn, setOptedIn] = useState(false);
   const [paramsSet,setParamsSet] = useState(false);
   const [finishedUp,setFinisedUp] = useState(false);
+
+  //views for Player
   const [acceptedWager,setAcceptedWager] = useState(false);
 
+
+  // eslint-disable-next-line no-unused-vars
   async function showBalance(account){
     const balAtomic = await reach.balanceOf(account);
     const bal = reach.formatCurrency(balAtomic, 4);
     return bal;
   }
 
-  async function call(f,dom = null) {
+  async function call(f,dom) {
     let res = undefined;
     try {
-      res = await f(dom);
-      console.log(`res`, res);
-      return res;
+      if (dom){
+        res = await f(dom);
+      } else {
+        res = await f();
+      }
+      return 'success';
     } catch (e) {
       res = [`err`, e]
       console.log(`res`, res);
-      return false;
+      return 'failed';
     }
   }
 
   const reachFuncs = {
-    connect: async (playerType) => {
+    connect: async () => {
       let result = ""
       let account;
       try {
@@ -71,51 +93,37 @@ function App () {
       return {result,account};
     },
 
-    deploy: async (numPlayers,amt,rounds) => {
+    deploy: async (secret,numPlayers,amt,rounds) => {
       const parameters = {
         numPlayers: numPlayers,
         amt: reach.parseCurrency(amt),
         rounds: rounds
       }
-      setParamsG({numPlayers: numPlayers,amt: amt,rounds: rounds});
       const contract = account.contract(backend);
       setCreatedGame(true);
       await reach.withDisconnect(() => Promise.all([
         backend.Admin(contract, {
           setParams: parameters,
           ready: () => {
-            console.log(`Admin disconnected as Participant`);
             reach.disconnect(null);
           }
-        })
+        }),
       ]))
       setOptedIn(true);
       setParamsSet(true);
-      const ctcInfo = await contract.getInfo()
-      console.log(ctcInfo)
-      return {contract,ctcInfo};
-    },
-
-    attachGame: async (secret, contractInfo) => {
-      const account = await reach.newAccountFromMnemonic(secret.trim())
-      console.log(await showBalance(account))
-      const canFund = await reach.canFundFromFaucet()
-      if(canFund) {
-        console.log(`Can Fund`);
-        const faucet = await reach.getFaucet()
-        const balanceOfFaucet = await showBalance(faucet)
-        const fmtBal = reach.formatCurrency(balanceOfFaucet, 4)
-        console.log(`Faucet balance ${fmtBal}`)
-
-        console.log(`Funding`)
-        await reach.fundFromFaucet(reach.parseCurrency(fmtBal - 0.5))
-        console.log(`Funded`)
-      } else {
-        console.log(`Cannot fund`);
-      }
-      console.log(await showBalance(account))
-      const contract = account.contract(backend, contractInfo);
-      return contract;
+      const ctcInfo = await contract.getInfo();
+      //Game account
+      const gameAccount = await reach.newAccountFromMnemonic(secret.trim())
+      const gameContract = gameAccount.contract(backend, ctcInfo);
+      setCreatedGame(true);
+      Promise.all([
+        backend.Game(contract, {
+          getWinner: () => {
+            return winner;
+          }
+        })
+      ])
+      return {gameContract,contract,ctcInfo};
     },
 
     attachPlayer: (contractInfo) => { 
@@ -124,21 +132,15 @@ function App () {
     },
 
     // API funtions
-    join: (playerCtc) => {
-      call(playerCtc.apis.Player.join);
+    join: async () => {
+      const res = await call(contractP.apis.Player.join);
+      // const ev = await contractP.events.GamePhase.phase.next();
+      return {res};
     },
 
-    wager: (playerCtc) => {
-      call(playerCtc.apis.Player.wager);
-    },
-
-    getNum: (playerCtc,num) => {
-      call(playerCtc.apis.Player.getNum,num);
-    },
-
-    checkWin: (playerCtc) => {
-      const isWinner = call(playerCtc.apis.Player.checkWin);
-      return isWinner;
+    wager: async () => {
+      const res = await call(contractP.apis.Player.wager);
+      return {res};
     }
   }
 
@@ -152,7 +154,8 @@ function App () {
     setError('Connection to server closed')
   }
 
-  async function onMessageCallback (type, data) {
+  let phase;
+  async function onMessageCallback (type, data,callback) {
     if (type === 'chat-event') {
       appendText(data.message, data.author, data.color)
     } else if (type === 'session-broadcast') {
@@ -160,60 +163,87 @@ function App () {
     } else if (type === 'start-game') {
       startGame(data)
     } else if (type === 'vote-result') {
-      console.log(data);
-      if (data.winLose) {
-        //todo: add reach function to submit win; reach will award the first person to vote
+      console.log(data)
+      if(data.winLose) {
+        setWinner(data.playerAddress);
       }
     } else if (type === 'session-created') {
       setGameMode(true)
-      console.log(data)
+      setWager(data.sessionWager)
       if( data.playerType === 'Admin') {
-        //Admin deploys game
-        const deployment = await reachFuncs.deploy(data.sessionNumP,data.sessionWager,data.sessionRounds);
+        //Admin deploys game and Game attaches
+        const deployment = await reachFuncs.deploy(GAME_ACCOUNT,data.sessionNumP,data.sessionWager,data.sessionRounds);
         connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
-        connectionManager.send("set-player-ctc", { playerContract: deployment.contract})
-        //Game attaches
-        const gameContract = await reachFuncs.attachGame(process.env.GAME_ACCOUNT || 'harvest immune derive hobby pyramid behave you wedding tragic mouse demand harvest climb vicious world bullet gloom bacon border aspect burden immense relief able area',deployment.ctcInfo)
-        console.log(gameContract)
-        connectionManager.send("set-game-ctc", {gameContract: gameContract})
+        contractP = deployment.contract;
+        gameCtc = deployment.gameContract;
         //send reach events to server
-        const ev = await deployment.contract.events.GamePhase.phase
-        console.log(ev);
+        const ev = await deployment.contract.events.GamePhase.phase.next();
         connectionManager.send("set-reach-events",{events: ev});
-        // //admin joins as player in contract
-        // reachFuncs.join(deployment.contract);
-        // console.log(`Admin joined as Player 1`);
         setFinisedUp(true);
-      } else if (data.playerType === 'Player'){
-        const playerContract = reachFuncs.attachPlayer(data.sessionCtc)
-        console.log(playerContract)
-        connectionManager.send("set-player-ctc", { playerContract: playerContract})
-        // reachFuncs.join(playerContract);
+      } else if (data.playerType === 'Player') {
+        contractP = reachFuncs.attachPlayer(data.sessionCtc);
       }
-      setError('')
+      if(data.sessionId === null) {
+        setGameMode(false);
+        setError('No such Lobby')
+      } else {
+        setError('')
+      }
 
+      
     } else if ( type === 'reach-callback') {
       //TO DO player function handling
-      const ev = data.events.next()
-      const phase = ev.what[0][0]
+      phase = data.phases.what[0][0]
+      console.log(phase);
       // eslint-disable-next-line default-case
       switch(phase) {
         case 'Joining':
-          reachFuncs.join(data.playerContract);
+          connectionManager.send("chat-event", {
+            message: `${data.cliName} is joining the game contract as player ${data.cliIdx}`,
+            color: "blue",
+          });
+          if(data.cliName.substring(3) === name) {
+            const joinData = await reachFuncs.join();
+            console.log(joinData.res);
+            let id;
+            let ev;
+            let response;
+            if(data.cliIdx === data.participants){
+              id = 1
+              const what = [["Wagering",null]]
+              console.log(what[0][0])
+              ev = {what}
+              response = {response: joinData.res,done: false,id: id ,events: ev }
+            } else {
+              id = data.cliIdx + 1
+              response = {response: joinData.res,done: false,id: id}
+            }
+            connectionManager.send("reach-success",response);
+          }
           break;
 
         case 'Wagering':
-          reachFuncs.wager(data.playerContract); 
-          break;
-          
-        case 'CheckingWin':
-          reachFuncs.checkWin(data.playerContract)
-          break;
-
-        case 'PayingWinners':
+          connectionManager.send("chat-event", {
+            message: `${data.cliName} is paying the wager`,
+            color: "blue",
+          });
+          if(data.cliName.substring(3) === name) {
+            const wagerData = await reachFuncs.wager();
+            let response;
+            let id;
+            if(data.cliIdx === data.participants) {
+              id = 1
+              response = {response: wagerData.res,done: true,id: id}
+            } else {
+              id = data.cliIdx + 1
+              response = {response: wagerData.res,done: false,id: id}
+            }
+            connectionManager.send("reach-success",response);
+          } 
           break;
 
         case 'Finished':
+          console.log('Finished');
           break;
       }
     }
@@ -305,13 +335,18 @@ function App () {
                     readyCheck={readyCheck}
                     setReadyCheck={setReadyCheck}
                     lobbyStatus={lobbyStatus}
+                    setGameMode={setGameMode}
+                    setError={setError}
                     createdGame={createdGame}
-                    paramsG={paramsG}
                     optedIn={optedIn}
                     paramsSet={paramsSet}
                     finishedUp={finishedUp}
                     acceptedWager={acceptedWager}
                     isSpy={isSpy}
+                    setAcceptedWager={setAcceptedWager}
+                    setPType={setPType}
+                    pType= {pType}
+                    wager={wager}
                   />
                 </>
                 )
@@ -321,6 +356,9 @@ function App () {
                   connectionManager={connectionManager}
                   onDisconnect={onDisconnect}
                   onMessageCallback={onMessageCallback}
+                  setName = {setName}
+                  setPType = {setPType}
+                  pType={pType}
                 />
                 )}
                 </>

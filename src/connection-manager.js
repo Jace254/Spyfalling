@@ -3,7 +3,7 @@ import io from 'socket.io-client'
 export default class ConnectionManager {
   constructor (props) {
     this.socket = null
-    this.initSocket()
+    this.initSocket();
   }
 
   initSocket () {
@@ -14,7 +14,7 @@ export default class ConnectionManager {
         this.socket = io('wss://server-spyfalling.herokuapp.com',{transports: ['websocket'], upgrade: false})
       }
     } else {
-      this.socket.connect()
+      this.socket.connect();
     }
   }
 
@@ -36,8 +36,9 @@ export default class ConnectionManager {
       connectionClosedCallback()
     })
 
-    this.socket.on('message', (msg) => {
-      onMessageCallback(msg.type, msg)
+    this.socket.on('message', (msg,callback) => {
+      console.log(msg);
+      onMessageCallback(msg.type,msg,callback)
     })
   }
 

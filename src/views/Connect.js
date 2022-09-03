@@ -18,31 +18,28 @@ export default function Connect (props) {
     setDisabled(true);
     e.preventDefault()
     props.setGameMode(true)
-    let pType;
-    if(buttonText === '🔌 Join Lobby') {
-      pType = 'Player'
-    } else {
-      pType = 'Admin'
-    }
+    console.log(props.pType)
     props.connectionManager.connect(
       playerName,
       lobbyID,
       wager,
       numPlayers,
       rounds,
-      pType,
+      props.pType,
       props.onDisconnect,
       props.onMessageCallback
     )
   }
 
-  const handleSwitch = (event) => {
+  const handleSwitch = () => {
     if (buttonText === '🔌 Join Lobby') {
       setButtonText('🏠 Create Lobby')
       setSwitchText('Join Instead')
+      props.setPType('Admin');
     } else  if (buttonText === '🏠 Create Lobby'){
       setButtonText('🔌 Join Lobby')
       setSwitchText('Create Instead')
+      props.setPType('Player');
     } 
   }
 
@@ -77,7 +74,7 @@ export default function Connect (props) {
             autoFocus
             maxLength='16'
             value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
+            onChange={(e) => {setPlayerName(e.target.value); props.setName(e.target.value);}}
           />
         </div>
         {buttonText === '🔌 Join Lobby' && 
@@ -109,7 +106,7 @@ export default function Connect (props) {
               id='playerCount'
               type='number'
               max='10'
-              min='5'
+              min='2'
               className='form-control'
               value={numPlayers}
               onChange={(e) => setNumPlayers(e.target.value)}

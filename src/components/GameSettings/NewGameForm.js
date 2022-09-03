@@ -1,13 +1,18 @@
-import React, { useRef } from 'react'
+import React, { useRef,useState } from 'react'
 
 export default function NewGameForm ({
   readyCheck,
   setReadyCheck,
-  connectionManager
+  connectionManager,
 }) {
+  const [disabled, setDisabled] = useState(false)
   const readyRef = useRef()
 
   const handleStartGame = (event) => {
+    if(disabled){
+      return;
+    }
+    setDisabled(true);
     event.preventDefault()
     if (readyRef.current.checked) {
       //Todo: Reach submit wager
@@ -49,7 +54,7 @@ export default function NewGameForm ({
         <div className='d-grid'>
           <button type='submit' className='btn btn-primary'>
             <i className='fas fa-traffic-light' /> Start new round
-          </button>
+          </button> 
         </div>
       </form>
     </div>

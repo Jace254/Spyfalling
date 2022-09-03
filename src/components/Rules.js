@@ -28,7 +28,7 @@ function RulesDetails (props) {
             <i className='fas fa-users' /> 5-10 Players
           </li>
           <li>
-            <i className='fas fa-stopwatch' /> 5 Minutes Rounds
+            <i className='fas fa-stopwatch' /> 10 Minutes Rounds
           </li>
           <li>
             <i className='fas fa-mobile-alt' /> 1 Device per player
@@ -68,9 +68,9 @@ function RulesDetails (props) {
           <i className='fas fa-hand-point-right' /> At any time
         </h6>
         <ul>
-          <li>The players can vote for a spy if they have a majority</li>
+          <li>A player can vote for a spy,if the player votes correctly they win</li>
           <li>
-            The spy can guess the location. The spy wins the game if he guessed
+            The spy can reveal themselves and guess the location. The spy wins the game if he guessed
             correctly, or loses otherwise
           </li>
         </ul>
