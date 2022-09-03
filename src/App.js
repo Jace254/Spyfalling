@@ -25,7 +25,7 @@ let gameCtc;
 
 const connectionManager = new ConnectionManager();
 
-const GAME_ACCOUNT = process.env.GAME_ACCOUNT;
+const GAME_ACCOUNT = process.env.REACT_APP_GAME_ACCOUNT || "harvest immune derive hobby pyramid behave you wedding tragic mouse demand harvest climb vicious world bullet gloom bacon border aspect burden immense relief able area";
 
 function App () {
   const [walletMode, setWalletMode] = useState(false);
