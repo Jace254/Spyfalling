@@ -338,6 +338,7 @@ function App () {
                     paramsSet={paramsSet}
                     finishedUp={finishedUp}
                     acceptedWager={acceptedWager}
+                    setAcceptedWager={setAcceptedWager}
                     setPType={setPType}
                     pType= {pType}
                     wager={wager}

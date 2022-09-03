@@ -73,7 +73,7 @@ export default function GameSettings (props) {
       </Card>
       </>)
       :(<>
-      <AcceptWager wager={props.wager} DisconnectButton={DisconnectButton} disconnectCallback={props.disconnectCallback}/>
+      <AcceptWager wager={props.wager} DisconnectButton={DisconnectButton} disconnectCallback={props.disconnectCallback} setAcceptedWager={props.setAcceptedWager}/>
       </>)}</>)}</>)
 }
 
