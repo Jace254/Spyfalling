@@ -1,13 +1,18 @@
-import React, { useRef } from 'react'
+import React, { useRef,useState } from 'react'
 
 export default function NewGameForm ({
   readyCheck,
   setReadyCheck,
   connectionManager,
 }) {
+  const [disabled, setDisabled] = useState(false)
   const readyRef = useRef()
 
   const handleStartGame = (event) => {
+    if(disabled){
+      return;
+    }
+    setDisabled(true);
     event.preventDefault()
     if (readyRef.current.checked) {
       //Todo: Reach submit wager

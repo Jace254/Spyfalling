@@ -5,7 +5,7 @@ import NewGameForm from './NewGameForm'
 import PlayersList from './PlayersList'
 import Chat from '../Chat/Chat'
 import Locations from '../Locations'
-import { CreateGame, FinishingUp, OptIn, SettingParams } from '../../views'
+import { AcceptWager, CreateGame, FinishingUp, OptIn, SettingParams } from '../../views'
 
 
 export default function GameSettings (props) {
@@ -45,7 +45,8 @@ export default function GameSettings (props) {
             : (<><SettingParams/></>)}</>) 
           : (<><OptIn params={props.paramsG}/></>)}</>)
         : (<><CreateGame/></>)}</>)
-      : (<>
+      : (<>{props.acceptedWager ? (
+      <>      
       <Chat
         connectionManager={props.connectionManager}
         chatContent={props.chatContent}
@@ -70,7 +71,10 @@ export default function GameSettings (props) {
         <hr />
         <DisconnectButton disconnectCallback={props.disconnectCallback} />
       </Card>
-      </>)}</>)
+      </>)
+      :(<>
+      <AcceptWager wager={props.wager} DisconnectButton={DisconnectButton} disconnectCallback={props.disconnectCallback} setAcceptedWager={props.setAcceptedWager}/>
+      </>)}</>)}</>)
 }
 
 function DisconnectButton ({ disconnectCallback }) {
