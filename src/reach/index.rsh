@@ -30,7 +30,7 @@ export const main = Reach.App(() => {
     wager: Fun([], Null),
   });
 
-  const Phase = Data({Joining: Null, Wagering: Null, Finished: Null})
+  const Phase = Data({Joining: Null, Wagering: Null,Paying: Null,Finished: Null})
   const GP = Events('GamePhase', { phase: [ Phase ]});
   init();
   
@@ -52,7 +52,7 @@ export const main = Reach.App(() => {
   while(remainingRounds > 0) {
     // Maps and sets of in game concepts
     const playersM = new Set();
-    
+
     const awaitAdminPlayerAPI = (apiFunc) => {
       
       if  (apiFunc == 1) {
@@ -114,7 +114,7 @@ export const main = Reach.App(() => {
       })
       .timeout(false)
 
-    
+    GP.phase(Phase.Paying());
     commit();
     Game.only(() => {
       const winner = declassify(interact.getWinner())

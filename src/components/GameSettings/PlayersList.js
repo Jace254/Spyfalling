@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-export default function PlayersList ({ lobbyStatus, isSpy, connectionManager }) {
+export default function PlayersList ({ lobbyStatus, isSpy, connectionManager,gameStarted }) {
   const [vote, setVote] = useState();
 
   const handleSubmit = async (e) => {
@@ -33,8 +33,10 @@ export default function PlayersList ({ lobbyStatus, isSpy, connectionManager }) 
         })}
       </ul>
       {/**if player is not spy, they can see this view and choose who the spy is */}
-      {!isSpy &&
-        <form onSubmit={handleSubmit}>
+      {!isSpy && gameStarted
+      ? (
+      <>
+      <form onSubmit={handleSubmit}>
           <select 
             className='mb-3 form-control'
             value={vote} 
@@ -43,7 +45,7 @@ export default function PlayersList ({ lobbyStatus, isSpy, connectionManager }) 
           >
             {lobbyStatus?.peers.clients.map((client, i) => {
               return (
-                <option value={i}>{client.name}</option>
+                <option value={i} key={client.name}>{client.name}</option>
               )
             })}
           </select>
@@ -53,7 +55,7 @@ export default function PlayersList ({ lobbyStatus, isSpy, connectionManager }) 
             </button>
           </div>
         </form>
-      }
+        </>) : (null)}
     </div>
   )
 }

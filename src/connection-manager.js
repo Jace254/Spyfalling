@@ -37,7 +37,6 @@ export default class ConnectionManager {
     })
 
     this.socket.on('message', (msg,callback) => {
-      console.log(msg);
       onMessageCallback(msg.type,msg,callback)
     })
   }

@@ -9,6 +9,21 @@ import { AcceptWager, CreateGame, FinishingUp, OptIn, SettingParams } from '../.
 
 
 export default function GameSettings (props) {
+
+  React.useEffect(() => {
+    let interval = null
+    if (props.isTimerActive) {
+      interval = setInterval(() => {
+        props.setTimer((seconds) => seconds - 1)
+        if (props.timer <= 0) {
+          clearInterval(interval)
+        }
+      }, 1000)
+    } else if (!props.isTimerActive) {
+      clearInterval(interval)
+    }
+    return () => clearInterval(interval)
+  }, [props.timer, props.setTimer, props.isTimerActive, props])
  
   return (
     <>{props.pType === 'Admin'
@@ -20,18 +35,24 @@ export default function GameSettings (props) {
                 <Chat
                   connectionManager={props.connectionManager}
                   chatContent={props.chatContent}
-                  isActive={props.isTimerActive}
                   timer={props.timer}
-                  setTimer={props.setTimer}
                   gameDuration={props.gameDuration}
                 />
-                <Locations locations={props.locations} />
+                <Locations 
+                locations={props.locations} 
+                connectionManager={props.connectionManager}
+                isSpy={props.isSpy}
+                gameStarted={props.gameStarted}/>
                 <Card
                   className='border-secondary'
                   header='<i class="fas fa-cog"></i> Settings'
                 >
                   <LobbyCode lobbyStatus={props.lobbyStatus}/>
-                  <PlayersList lobbyStatus={props.lobbyStatus}/>
+                  <PlayersList 
+                  lobbyStatus={props.lobbyStatus} 
+                  isSpy={props.isSpy}
+                  connectionManager={props.connectionManager}
+                  gameStarted={props.gameStarted}/>
                   <NewGameForm
                     readyCheck={props.readyCheck}
                     setReadyCheck={props.setReadyCheck}
@@ -55,13 +76,21 @@ export default function GameSettings (props) {
         setTimer={props.setTimer}
         gameDuration={props.gameDuration}
       />
-      <Locations locations={props.locations} />
+      <Locations 
+      locations={props.locations} 
+      connectionManager={props.connectionManager}
+      isSpy={props.isSpy}
+      gameStarted={props.gameStarted}/>
       <Card
         className='border-secondary'
         header='<i class="fas fa-cog"></i> Settings'
       >
         <LobbyCode lobbyStatus={props.lobbyStatus} />
-        <PlayersList lobbyStatus={props.lobbyStatus} />
+        <PlayersList 
+        lobbyStatus={props.lobbyStatus} 
+        isSpy={props.isSpy}
+        connectionManager={props.connectionManager}
+        gameStarted={props.gameStarted}/>
         <NewGameForm
           readyCheck={props.readyCheck}
           setReadyCheck={props.setReadyCheck}
@@ -73,7 +102,11 @@ export default function GameSettings (props) {
       </Card>
       </>)
       :(<>
-      <AcceptWager wager={props.wager} DisconnectButton={DisconnectButton} disconnectCallback={props.disconnectCallback} setAcceptedWager={props.setAcceptedWager}/>
+      <AcceptWager 
+      wager={props.wager} 
+      DisconnectButton={DisconnectButton} 
+      disconnectCallback={props.disconnectCallback} 
+      setAcceptedWager={props.setAcceptedWager}/>
       </>)}</>)}</>)
 }
 

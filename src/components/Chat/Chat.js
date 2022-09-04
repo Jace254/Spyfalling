@@ -1,5 +1,5 @@
 import './Chat.css'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import Card from '../Card'
 import ProgressBar from './ProgressBar'
 
@@ -8,26 +8,11 @@ export default function Chat ({
   chatContent,
   gameDuration,
   timer,
-  setTimer,
-  isActive
 }) {
   const [inputText, setInputText] = useState('')
   const inputRef = useRef()
 
-  useEffect(() => {
-    let interval = null
-    if (isActive) {
-      interval = setInterval(() => {
-        setTimer((seconds) => seconds - 1)
-        if (timer <= 0) {
-          clearInterval(interval)
-        }
-      }, 1000)
-    } else if (!isActive) {
-      clearInterval(interval)
-    }
-    return () => clearInterval(interval)
-  }, [timer, setTimer, isActive])
+
 
   function handleSubmit (event) {
     event.preventDefault()

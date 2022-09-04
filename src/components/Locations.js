@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Card from './Card'
 
-export default function Locations ({ locations, connectionManager, isSpy }) {
+export default function Locations ({ locations, connectionManager, isSpy, gameStarted}) {
   const [vote, setVote] = useState()
 
   const handleSubmit = async (e) => {
@@ -31,8 +31,10 @@ export default function Locations ({ locations, connectionManager, isSpy }) {
             )
           })}
         </ul>
-        {isSpy &&
-          <form onSubmit={handleSubmit}>
+        {isSpy && gameStarted
+        ? (
+        <>
+        <form onSubmit={handleSubmit}>
             <select 
               className='mb-3 form-control'
               value={vote} 
@@ -41,7 +43,7 @@ export default function Locations ({ locations, connectionManager, isSpy }) {
             >
               {locations.map((loc, i) => {
                 return (
-                  <option value={i}>{loc}</option>
+                  <option value={i} key={loc}>{loc}</option>
                 )
               })}
             </select>
@@ -51,7 +53,7 @@ export default function Locations ({ locations, connectionManager, isSpy }) {
               </button>
             </div>
           </form>
-        }
+          </>) : (null)}
       </Card>
     )
   } else {

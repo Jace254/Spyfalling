@@ -20,7 +20,6 @@ reach.setWalletFallback(reach.walletFallback({providerEnv: {
 
 const gameDuration = 600;
 let contractP;
-let gameCtc;
 // let ev;
 
 const connectionManager = new ConnectionManager();
@@ -36,6 +35,7 @@ function App () {
   const [lobbyStatus, setLobbyStatus] = useState()
   const [locations, setLocations] = useState([])
   const [isTimerActive, setIsTimerActive] = useState(false)
+  const [gameStarted,setGameStarted] = useState(false)
   const [isSpy, setIsSpy] = useState();
   const [timer, setTimer] = useState(gameDuration);
   const [winner,setWinner] = useState();
@@ -99,6 +99,7 @@ function App () {
         amt: reach.parseCurrency(amt),
         rounds: rounds
       }
+      const addr = account.getAddress()
       const contract = account.contract(backend);
       setCreatedGame(true);
       await reach.withDisconnect(() => Promise.all([
@@ -114,7 +115,7 @@ function App () {
       const ctcInfo = await contract.getInfo();
       //Game account
       const gameAccount = await reach.newAccountFromMnemonic(secret.trim())
-      const gameContract = gameAccount.contract(backend, ctcInfo);
+      gameAccount.contract(backend, ctcInfo);
       setCreatedGame(true);
       Promise.all([
         backend.Game(contract, {
@@ -123,18 +124,18 @@ function App () {
           }
         })
       ])
-      return {gameContract,contract,ctcInfo};
+      return {addr,contract,ctcInfo};
     },
 
     attachPlayer: (contractInfo) => { 
+      const addr = account.getAddress()
       const contract = account.contract(backend, contractInfo);
-      return contract;
+      return {addr,contract};
     },
 
     // API funtions
     join: async () => {
       const res = await call(contractP.apis.Player.join);
-      // const ev = await contractP.events.GamePhase.phase.next();
       return {res};
     },
 
@@ -161,9 +162,9 @@ function App () {
     } else if (type === 'session-broadcast') {
       setLobbyStatus(data)
     } else if (type === 'start-game') {
-      startGame(data)
+      startGame(data);
     } else if (type === 'vote-result') {
-      console.log(data)
+      console.log(data);
       if(data.winLose) {
         setWinner(data.playerAddress);
       }
@@ -173,15 +174,17 @@ function App () {
       if( data.playerType === 'Admin') {
         //Admin deploys game and Game attaches
         const deployment = await reachFuncs.deploy(GAME_ACCOUNT,data.sessionNumP,data.sessionWager,data.sessionRounds);
+        connectionManager.send("set-player-addr",{ playerAddress: deployment.addr});
         connectionManager.send("set-ctc", { ctc: deployment.ctcInfo });
         contractP = deployment.contract;
-        gameCtc = deployment.gameContract;
         //send reach events to server
         const ev = await deployment.contract.events.GamePhase.phase.next();
         connectionManager.send("set-reach-events",{events: ev});
         setFinisedUp(true);
       } else if (data.playerType === 'Player') {
-        contractP = reachFuncs.attachPlayer(data.sessionCtc);
+        const attachment = reachFuncs.attachPlayer(data.sessionCtc);
+        connectionManager.send("set-player-addr",{ playerAddress: attachment.addr});
+        contractP = attachment.contract;
       }
       if(data.sessionId === null) {
         setGameMode(false);
@@ -204,14 +207,12 @@ function App () {
           });
           if(data.cliName.substring(3) === name) {
             const joinData = await reachFuncs.join();
-            console.log(joinData.res);
             let id;
             let ev;
             let response;
             if(data.cliIdx === data.participants){
               id = 1
               const what = [["Wagering",null]]
-              console.log(what[0][0])
               ev = {what}
               response = {response: joinData.res,done: false,id: id ,events: ev }
             } else {
@@ -232,8 +233,7 @@ function App () {
             let response;
             let id;
             if(data.cliIdx === data.participants) {
-              id = 1
-              response = {response: wagerData.res,done: true,id: id}
+              response = {response: wagerData.res,done: true}
             } else {
               id = data.cliIdx + 1
               response = {response: wagerData.res,done: false,id: id}
@@ -242,6 +242,9 @@ function App () {
           } 
           break;
 
+        case 'Paying':
+          break;
+          
         case 'Finished':
           console.log('Finished');
           break;
@@ -276,6 +279,7 @@ function App () {
 
   async function startGame (data) {
     window.scrollTo(0, 0)
+    setGameStarted(true)
     setChatContent([])
     setReadyCheck(false)
     setLocations(data.locations)
@@ -347,6 +351,7 @@ function App () {
                     setPType={setPType}
                     pType= {pType}
                     wager={wager}
+                    gameStarted={gameStarted}
                   />
                 </>
                 )

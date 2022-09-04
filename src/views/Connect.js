@@ -18,7 +18,6 @@ export default function Connect (props) {
     setDisabled(true);
     e.preventDefault()
     props.setGameMode(true)
-    console.log(props.pType)
     props.connectionManager.connect(
       playerName,
       lobbyID,
